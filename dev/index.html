@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CKEditor Playground</title>
+  </head>
+  <body>
+    <textarea
+      name="frameEditor"
+      id="frameEditor"
+      rows="40"
+      cols="80"
+    ></textarea>
+    <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+    <script>
+      CKEDITOR.replace("frameEditor", {
+        extraAllowedContent:
+          "colgroup[*]{*}; col[*]{*}; table[*]{*} ;tbody[*]{*}; thead[*]{*}; tfoot[*]{*}; tr[*]{*}; td[*]{*}; th[*]{*};",
+      });
+      CKEDITOR.on("instanceReady", function (event) {
+        //Intervenimos el evento de pegar
+        event.editor.on("paste", function (event2) {
+          //Llamamos a la api con la acción y el html que se va a pegar
+          console.log(event2.data.dataValue);
+          fetch("../endpoints/editor_tools.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              action: "relative_table_width",
+              html: event2.data.dataValue,
+            }),
+          })
+            .then((response) => response.text())
+            .then((data) => {
+              //Reemplazamos el html que se va a pegar por el html que nos devolvió la api
+              console.log(data)
+              event2.editor.setData(data);
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        });
+      });
+    </script>
+  </body>
+</html>
